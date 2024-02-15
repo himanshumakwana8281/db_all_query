@@ -92,7 +92,6 @@ SELECT * from
     FROM tbl_employee) as h
 WHERE ranking = 3;
 
-
 ---------------------------------------
 ----------2nd Lowest Salary------------
 ---------------------------------------
@@ -176,16 +175,17 @@ return
 	from
 		tbl_employee
 
-select * from get_salary()
 
-create function get_emp
+CREATE FUNCTION get_emp
 (
-@e_id as int
+    @e_id INT
 )
-returns table
-as
-return
-select * from tbl_employee where e_id = @e_id
+RETURNS TABLE
+AS
+RETURN
+(
+    SELECT * FROM tbl_employee WHERE e_id = @e_id
+);
 
 
 select * from get_emp(11)
@@ -201,15 +201,13 @@ CREATE FUNCTION dbo.addition_function
     )
     RETURNS INT
     AS
-    BEGIN
-	   
+    BEGIN	   
 	    DECLARE @result AS INT
 	    SET @result = @a + @b
 	    RETURN @a + @b
     END;
 
 select dbo.addition_function(40,20)
-
 
 -----------------------------------
 --------Subtract Function----------
@@ -272,22 +270,18 @@ select dbo.division(40,20)
 --------Write ALL Name in----------
 --single line with Semicolumn------
 -----------------------------------
-SELECT name+ '; ' 
+SELECT name+ ', ' 
 From tbl_employee
 for xml path('');
-
 
 -----------------------------------
 ---Find Max ID without using max---
 -----------------------------------
-
 select top 1 e_id from tbl_employee order by e_id desc
-
 
 -----------------------------------
 ------EVEN Number Records Only------
 -----------------------------------
-
 Select 
 	* 
 from 
@@ -316,13 +310,14 @@ SELECT DATEADD(MS, 1*1000, 0)
 -----------------------------------
 ------Blank Table from Existing----
 -----------------------------------
-	SELECT *
-		INTO 
-		tbl_temp
-	FROM tbl_employee
-	WHERE 
-		1=0;
-		
+SELECT
+	*
+INTO 
+	tbl_temp_1
+FROM 
+	tbl_employee
+where
+		1=0
 -----------------------------------
 --------Ternary Operator ----------
 -----------------------------------
@@ -343,4 +338,32 @@ begin
 set @h =@h+10	set @j = @j + 1
 end
 
-print dbo.addition_function(5000,10000)+2000 + 1400
+--------------------------------------------
+-----------	Find Department ----------------
+--------------------------------------------
+---------Max Salay and Avg Salary ----------
+--------------------------------------------
+
+with max_sal as(
+select department,salary from(
+select department ,salary, ROW_NUMBER() over(partition by department order by salary desc) as c from tbl_employee
+) as max_salary where c= 1
+),
+avg_sal as(
+select department ,avg(TRY_CAST(salary AS DECIMAL(10, 2))) AS AvgSalary from tbl_employee
+group by department
+)
+select mx.department , mx.salary , av.AvgSalary from max_sal as mx join avg_sal as av on mx.department = av.department
+
+--------------------------------------------
+--Find Who Can Enroll More Than One Course--
+--------------------------------------------
+SELECT s.stu_full_name
+FROM tbl_lln_test s
+GROUP BY s.stu_full_name
+HAVING COUNT(DISTINCT s.test_id) > 1;
+
+
+
+
+
